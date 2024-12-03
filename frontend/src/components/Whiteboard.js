@@ -27,6 +27,9 @@ const Canvas = () => {
     if (roomId) {
       socketRef.current.emit("joinRoom", roomId);
 
+      // Request the current whiteboard state
+      socketRef.current.emit("requestWhiteboardState", roomId);
+
       socketRef.current.on("loadDrawing", (drawings) => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
@@ -678,3 +681,9 @@ const Canvas = () => {
 };
 
 export default Canvas;
+
+socket.on('requestWhiteboardState', (roomId) => {
+  if (drawingrooms[roomId]) {
+    socket.emit("loadDrawing", drawingrooms[roomId]);
+  }
+});
