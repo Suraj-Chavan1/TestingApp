@@ -1,10 +1,10 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { io } from "socket.io-client";
-import { RiBrushFill, RiCircleLine, RiDeleteBinLine, RiEraserFill, RiPaintFill, RiPaletteFill, RiRectangleLine, RiShapesFill, RiStickyNoteFill, RiTriangleFill, RiTriangleLine } from "react-icons/ri";
+import { RiBrushFill, RiCircleLine, RiDeleteBinLine, RiEraserFill, RiPaintFill, RiPaletteFill, RiRectangleLine, RiStickyNoteFill, RiTriangleLine } from "react-icons/ri";
 import { TbOvalVertical } from 'react-icons/tb';
 import { BiPolygon, BiStar } from 'react-icons/bi';
-import { FaArrowsAltH, FaGripLines, FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
+import { FaArrowsAltH, FaGripLines } from "react-icons/fa";
 import Chat from "./Chat";
 import StickyNote from './StickyNote';
 import AudioRoom from "./Mic";
@@ -23,8 +23,7 @@ const Canvas = () => {
   const [stickyNotes, setStickyNotes] = useState([]);
 
   useEffect(() => {
-
-    socketRef.current = io("https://paletteconnect.onrender.com");   
+    socketRef.current = io("https://paletteconnect.onrender.com");
     if (roomId) {
       socketRef.current.emit("joinRoom", roomId);
 
@@ -61,11 +60,14 @@ const Canvas = () => {
     }
 
     return () => {
-      socketRef.current.off("loadDrawing");
-      socketRef.current.off("drawing");
-      socketRef.current.off("clearBoard");
-      socketRef.current.off("syncStickyNotes");
-      socketRef.current.off("createStickyNote");
+      if (socketRef.current) {
+        socketRef.current.off("loadDrawing");
+        socketRef.current.off("drawing");
+        socketRef.current.off("clearBoard");
+        socketRef.current.off("syncStickyNotes");
+        socketRef.current.off("syncDeleteStickyNote");
+        socketRef.current.off("createStickyNote");
+      }
     };
   }, [roomId]);
 
@@ -96,7 +98,6 @@ const Canvas = () => {
         ctx.lineTo(drawing.offsetX, drawing.offsetY);
         ctx.stroke();
         break;
-
 
       case "rectangle":
         ctx.lineWidth = drawing.brushWidth || 1;
@@ -156,7 +157,6 @@ const Canvas = () => {
         const fillColor = hexToRGBA(drawing.color);
         floodFill(ctx, drawing.x, drawing.y, Array.from(targetColor), fillColor);
         break;
-        
 
       default:
         console.error("Unknown tool:", drawing.tool);
@@ -178,7 +178,6 @@ const Canvas = () => {
     ctx.closePath();
     ctx.stroke();
   };
-
 
   const drawStar = (ctx, x, y, radius, points) => {
     const angleStep = (2 * Math.PI) / points;
@@ -239,22 +238,20 @@ const Canvas = () => {
     const rect = canvas.getBoundingClientRect();
     const x = Math.floor(e.clientX - rect.left);
     const y = Math.floor(e.clientY - rect.top);
-  
+
     if (tool === "fill") {
       const ctx = canvas.getContext("2d");
       const targetColor = ctx.getImageData(x, y, 1, 1).data;
       const fillColor = hexToRGBA(color);
-  
+
       floodFill(ctx, x, y, Array.from(targetColor), fillColor);
-  
+
       if (roomId) {
         socketRef.current.emit("drawing", { roomId, tool: "fill", x, y, color });
       }
-    } 
-    else if (tool === "stickyNote") {
+    } else if (tool === "stickyNote") {
       createStickyNote(x, y); // Create sticky note at clicked position
-    }
-    else {
+    } else {
       setIsDrawing(true);
       setStartPoint({ x, y });
       if (tool === "brush") {
@@ -265,7 +262,6 @@ const Canvas = () => {
       }
     }
   };
-  
 
   const handleMouseMove = (e) => {
     if (!isDrawing) return;
@@ -304,8 +300,7 @@ const Canvas = () => {
 
       // Update the start point for the next segment
       setStartPoint({ x, y });
-    }
-    else if (tool === "eraser") {
+    } else if (tool === "eraser") {
       ctx.strokeStyle = "#FFFFFF"; // Erase with the background color
       ctx.lineWidth = brushWidth;
       ctx.beginPath();
@@ -327,7 +322,6 @@ const Canvas = () => {
 
       setStartPoint({ x, y });
     }
-
   };
 
   const handleMouseUp = (e) => {
@@ -407,9 +401,9 @@ const Canvas = () => {
         const targetColor = ctx.getImageData(x, y, 1, 1).data; // Use x and y from mouse event
         const fillColor = hexToRGBA(drawingData.color); // Use color from drawingData
         floodFill(ctx, x, y, Array.from(targetColor), fillColor); // Perform fill operation
-        drawingData = { ...drawingData, type: "fill", targetColor: Array.from(targetColor), fillColor, x, y};
+        drawingData = { ...drawingData, type: "fill", targetColor: Array.from(targetColor), fillColor, x, y };
         break;
-  
+
       default:
         break;
     }
@@ -480,12 +474,12 @@ const Canvas = () => {
     const canvas = canvasRef.current;
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const { data, width, height } = imageData;
-  
+
     const getColorAt = (x, y) => {
       const index = (y * width + x) * 4;
       return data.slice(index, index + 4); // RGBA array
     };
-  
+
     const setColorAt = (x, y, color) => {
       const index = (y * width + x) * 4;
       data[index] = color[0]; // R
@@ -493,24 +487,24 @@ const Canvas = () => {
       data[index + 2] = color[2]; // B
       data[index + 3] = color[3]; // A
     };
-  
+
     const colorMatch = (c1, c2) => c1.every((v, i) => v === c2[i]);
-  
+
     const fillStack = [[startX, startY]];
     while (fillStack.length) {
       const [x, y] = fillStack.pop();
       const currentColor = getColorAt(x, y);
-  
+
       if (!colorMatch(currentColor, targetColor) || colorMatch(currentColor, fillColor)) continue;
-  
+
       setColorAt(x, y, fillColor);
-  
+
       if (x > 0) fillStack.push([x - 1, y]);
       if (x < width - 1) fillStack.push([x + 1, y]);
       if (y > 0) fillStack.push([x, y - 1]);
       if (y < height - 1) fillStack.push([x, y + 1]);
     }
-  
+
     ctx.putImageData(imageData, 0, 0);
   };
 
@@ -518,11 +512,11 @@ const Canvas = () => {
     const bigint = parseInt(hex.slice(1), 16);
     return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255, 255];
   };
-  
+
   return (
     <div className="min-h-screen bg-pink-600 flex">
       <div className="bg-white shadow-xl rounded-r-lg p-4 flex flex-col gap-4">
-      <AudioRoom roomId={roomId} />
+        <AudioRoom roomId={roomId} />
         <button
           onClick={() => setTool("brush")}
           className={`p-3 rounded-full shadow-md transition-all ${tool === "brush" ? "bg-pink-600 text-white" : "bg-white text-pink-600 hover:bg-pink-600 hover:text-white"
@@ -640,7 +634,6 @@ const Canvas = () => {
           <RiPaintFill className="text-xl" />
         </button>
 
-
         <button
           onClick={() => setTool("stickyNote")}
           className={`p-3 rounded-full shadow-md transition-all ${tool === "stickyNote" ? "bg-pink-600 text-white" : "bg-white text-pink-600 hover:bg-pink-600 hover:text-white"}`}
@@ -656,7 +649,7 @@ const Canvas = () => {
         </button>
       </div>
 
-      <div className="relative bg-white rounded-lg shadow-xl overflow-hidden flex-grow m-8" >
+      <div className="relative bg-white rounded-lg shadow-xl overflow-hidden flex-grow m-8">
         <canvas
           ref={canvasRef}
           width={1310}
@@ -676,7 +669,6 @@ const Canvas = () => {
             onCreateNewNote={handleCreateNewNote}
           />
         ))}
-
       </div>
       <div className="w-1/3 bg-white shadow-xl rounded-l-lg p-4">
         <Chat socketRef={socketRef} roomId={roomId} height={'400px'} />
