@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const StickyNote = ({ noteData, onUpdateNote, onDeleteNote }) => {
+const StickyNote = ({ noteData, onUpdateNote, onDeleteNote, onCreateNewNote }) => {
   const [text, setText] = useState(noteData.text);
   const [position, setPosition] = useState({ x: noteData.x, y: noteData.y });
   const [color, setColor] = useState(noteData.color || '#FFFAE3'); // Default light yellow color
@@ -12,12 +12,21 @@ const StickyNote = ({ noteData, onUpdateNote, onDeleteNote }) => {
   }, [noteData]);
 
   const handleDrag = (e) => {
+    const offsetX = e.clientX - position.x;
+    const offsetY = e.clientY - position.y;
+
     const newPosition = {
-      x: e.clientX,
-      y: e.clientY
+      x: e.clientX - offsetX,
+      y: e.clientY - offsetY
     };
 
     setPosition(newPosition);
+
+    onUpdateNote({
+      ...noteData,
+      x: newPosition.x,
+      y: newPosition.y
+    });
   };
 
   const handleDragEnd = (e) => {
@@ -53,7 +62,7 @@ const StickyNote = ({ noteData, onUpdateNote, onDeleteNote }) => {
         width: '150px',
         backgroundColor: color // Set the sticky note color
       }}
-      draggable="true"
+      draggable
       onDrag={handleDrag}
       onDragEnd={handleDragEnd}
     >

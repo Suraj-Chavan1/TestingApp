@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { FaPaperPlane, FaSmile, FaSearch, FaImage } from 'react-icons/fa';
-import axios from 'axios';
-import EmojiPicker from 'emoji-picker-react';
+import { FaPaperPlane, FaSmile, FaSearch, FaImage } from 'react-icons/fa'; // Changed GIF icon to FaImage
+import axios from 'axios'; // For API calls
+import EmojiPicker from 'emoji-picker-react'; // For emoji picker
 
-const GIPHY_API_KEY = 'N8zxen9SSipE8ZLfgl8SZX3t8yzlZXSS';
+const GIPHY_API_KEY = 'N8zxen9SSipE8ZLfgl8SZX3t8yzlZXSS'; // Replace with your actual Giphy API Key
 
 const Chat = ({ socketRef, roomId, height }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [gifs, setGifs] = useState([]);
+  const [gifs, setGifs] = useState([]); // Store fetched GIFs
   const [searchQuery, setSearchQuery] = useState('');
   const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
 
@@ -42,8 +42,8 @@ const Chat = ({ socketRef, roomId, height }) => {
 
   const handleSendGif = (gifUrl) => {
     handleSendMessage(gifUrl);
-    setShowGifPicker(false);
-    setIsGifPickerOpen(false);
+    setShowGifPicker(false); // Close the GIF picker after sending
+    setIsGifPickerOpen(false); // Reset the GIF picker state
   };
 
   const fetchGifs = async (query) => {
@@ -54,7 +54,7 @@ const Chat = ({ socketRef, roomId, height }) => {
         limit: 10
       }
     });
-    setGifs(res.data.data);
+    setGifs(res.data.data); // Giphy API response contains the GIFs in `data.data`
   };
 
   const handleSearchGiphy = (e) => {
@@ -63,7 +63,7 @@ const Chat = ({ socketRef, roomId, height }) => {
   };
 
   const handleEmojiClick = (emojiObject) => {
-    setNewMessage(prevMessage => prevMessage + emojiObject.emoji);
+    setNewMessage(prevMessage => prevMessage + emojiObject.emoji); // Append emoji to the message
   };
 
   const renderMessages = () => {
@@ -100,6 +100,7 @@ const Chat = ({ socketRef, roomId, height }) => {
             </button>
           </form>
   
+          {/* Display GIFs */}
           <div className="grid grid-cols-3 gap-2 mb-2">
             {gifs.map((gif) => (
               <img
@@ -114,16 +115,19 @@ const Chat = ({ socketRef, roomId, height }) => {
         </div>
       )}
   
+      {/* Emoji Picker (visible based on height condition) */}
       {showEmojiPicker && (
         <div className="absolute bottom-20 right-10 z-10">
           <EmojiPicker onEmojiClick={handleEmojiClick} />
         </div>
       )}
   
+      {/* Message Input and Controls */}
       <form 
         onSubmit={(e) => { e.preventDefault(); handleSendMessage(newMessage); }} 
         className="flex flex-col items-center mt-4 space-y-2 w-full"
       >
+        {/* Message Input */}
         <div className="w-full flex items-center space-x-2">
           <input
             type="text"
@@ -134,7 +138,9 @@ const Chat = ({ socketRef, roomId, height }) => {
           />
         </div>
   
+        {/* Buttons (GIF, Emoji, Send) */}
         <div className="flex space-x-2 justify-center w-full mt-2">
+          {/* GIF Button */}
           <button
             type="button"
             className="w-12 h-12 text-white bg-[#CE4760] hover:bg-[#2F4550] rounded-lg transition duration-300 flex items-center justify-center"
@@ -146,6 +152,7 @@ const Chat = ({ socketRef, roomId, height }) => {
             <FaImage className="w-6 h-6" />
           </button>
   
+          {/* Emoji Button */}
           <button
             type="button"
             className="w-12 h-12 text-white bg-[#CE4760] hover:bg-[#2F4550] rounded-lg transition duration-300 flex items-center justify-center"
@@ -154,6 +161,7 @@ const Chat = ({ socketRef, roomId, height }) => {
             <FaSmile size={24} />
           </button>
   
+          {/* Send Button */}
           <button
             type="submit"
             className="w-12 h-12 text-white bg-[#CE4760] hover:bg-[#2F4550] rounded-lg transition duration-300 flex items-center justify-center"

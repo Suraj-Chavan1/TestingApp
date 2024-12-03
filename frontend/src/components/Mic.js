@@ -16,55 +16,53 @@ const AudioRoom = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (roomId) {
-            socketRef.current = io.connect('https://testingapp-wci0.onrender.com');
+        socketRef.current = io.connect('https://paletteconnect.onrender.com');
 
-            navigator.mediaDevices.getUserMedia({ audio: true }) // Only request audio
-                .then(stream => {
-                    streamRef.current = stream;
+        navigator.mediaDevices.getUserMedia({ audio: true }) // Only request audio
+            .then(stream => {
+                streamRef.current = stream;
 
-                    socketRef.current.emit('join room', roomId);
+                socketRef.current.emit('join room', roomId);
 
-                    socketRef.current.on('all users', users => {
-                        const peers = [];
-                        users.forEach(userId => {
-                            const peer = createPeer(userId, socketRef.current.id, stream);
-                            peersRef.current.push({
-                                peerID: userId,
-                                peer,
-                            });
-                            peers.push(peer);
-                        });
-                        setPeers(peers);
-                    });
-
-                    socketRef.current.on('user joined', payload => {
-                        const peer = addPeer(payload.signal, payload.callerID, stream);
+                socketRef.current.on('all users', users => {
+                    const peers = [];
+                    users.forEach(userId => {
+                        const peer = createPeer(userId, socketRef.current.id, stream);
                         peersRef.current.push({
-                            peerID: payload.callerID,
+                            peerID: userId,
                             peer,
                         });
-                        setPeers(users => [...users, peer]);
+                        peers.push(peer);
                     });
-
-                    socketRef.current.on('receiving returned signal', payload => {
-                        const item = peersRef.current.find(p => p.peerID === payload.id);
-                        item.peer.signal(payload.signal);
-                    });
-                })
-                .catch(err => {
-                    console.error("Error accessing media devices:", err);
+                    setPeers(peers);
                 });
 
-            return () => {
-                if (socketRef.current) {
-                    socketRef.current.disconnect();
-                }
-                if (streamRef.current) {
-                    streamRef.current.getTracks().forEach(track => track.stop());
-                }
-            };
-        }
+                socketRef.current.on('user joined', payload => {
+                    const peer = addPeer(payload.signal, payload.callerID, stream);
+                    peersRef.current.push({
+                        peerID: payload.callerID,
+                        peer,
+                    });
+                    setPeers(users => [...users, peer]);
+                });
+
+                socketRef.current.on('receiving returned signal', payload => {
+                    const item = peersRef.current.find(p => p.peerID === payload.id);
+                    item.peer.signal(payload.signal);
+                });
+            })
+            .catch(err => {
+                console.error("Error accessing media devices:", err);
+            });
+
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+            }
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
+            }
+        };
     }, [roomId]);
 
     const toggleMic = () => {
