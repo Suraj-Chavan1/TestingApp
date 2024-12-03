@@ -8,9 +8,9 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<VideoRoom/>} />
+        <Route path="/" element={<VideoRoom />} />
         <Route path="/whiteboard/:roomId" element={<Whiteboard />} />
-        <Route path="/mic" element={<AudioRoom/>} />
+        <Route path="/mic" element={<AudioRoom />} />
       </Routes>
     </Router>
   );
