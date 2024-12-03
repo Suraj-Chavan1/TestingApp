@@ -9,7 +9,7 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3000', // Adjust as needed for your frontend
+    origin: '*', // Allow all origins
     methods: ['GET', 'POST'],
   },
 });
@@ -76,7 +76,6 @@ io.on('connection', (socket) => {
     }
   });
 
-
   socket.on('drawing', (data) => {
     const { roomId, ...drawingData } = data;
     if (!drawingrooms[roomId]) {
@@ -109,7 +108,6 @@ io.on('connection', (socket) => {
     // Broadcast the new sticky note to all users in the room
     io.to(roomId).emit('syncStickyNotes', stickyNotesPerRoom[roomId]);
   });
-
 
   // Handle sticky note updates (e.g., moving or editing a note)
   socket.on('updateStickyNote', ({ roomId, note }) => {
