@@ -19,7 +19,7 @@ const VideoRoom = () => {
 
     useEffect(() => {
         if (roomId) {
-            socketRef.current = io.connect('https://paletteconnect.onrender.com');
+            socketRef.current = io.connect('https://testingapp-wci0.onrender.com');
 
             navigator.mediaDevices.getUserMedia({ video: true, audio: true })
                 .then(stream => {
