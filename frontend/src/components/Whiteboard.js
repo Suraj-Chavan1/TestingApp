@@ -26,7 +26,7 @@ const Canvas = () => {
 
   useEffect(() => {
 
-    socketRef.current = io("https://paletteconnect.onrender.com");   
+    socketRef.current = io("https://testingapp-wci0.onrender.com");   
     if (roomId) {
       socketRef.current.emit("joinRoom", roomId);
 

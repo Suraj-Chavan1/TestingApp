@@ -16,7 +16,7 @@ const AudioRoom = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        socketRef.current = io.connect('https://paletteconnect.onrender.com');
+        socketRef.current = io.connect('https://testingapp-wci0.onrender.com');
 
         navigator.mediaDevices.getUserMedia({ audio: true }) // Only request audio
             .then(stream => {
