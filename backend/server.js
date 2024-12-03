@@ -4,12 +4,15 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://testing-app-omega.vercel.app'], // Allow both localhost and your deployed frontend
+  methods: ['GET', 'POST'],
+}));
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: '*', // Allow all origins
+    origin: ['http://localhost:3000', 'https://testing-app-omega.vercel.app'], // Allow both localhost and your deployed frontend
     methods: ['GET', 'POST'],
   },
 });
